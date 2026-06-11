@@ -10,6 +10,75 @@ a2x-internal-router as OpenAI-compatible inference.
 > macOS / Linux / Windows, published automatically by the source repo's release
 > workflow.
 
+## Prerequisites
+
+The binary is self-contained — it downloads its own dependencies (vicoop-client
+and the vicoop-codex backend) during `up`, so the host needs **no Node.js, `jq`,
+or build tools**. It does assume the following, from install through first run.
+`vicoop-provider doctor` checks the ones it can detect (platform, the backend CLI
++ sign-in, a2x reachability); the rest are listed here.
+
+**Platform** — prebuilt binaries exist for **macOS (Apple Silicon)**, **Linux
+x86-64 / arm64**, and **Windows x64** only. There is **no Intel-Mac (x86-64)
+build** — the installer won't match it and the tool can't self-upgrade there.
+64-bit OS required.
+
+**Install-time host tools**
+
+- macOS / Linux: `curl` or `wget` on PATH (the installer aborts without one).
+  Checksum verification additionally uses `sha256sum` / `shasum` when present.
+- Windows: the one-liner needs **PowerShell** — the `irm … | iex` bootstrap and
+  `install.ps1` use PowerShell cmdlets, so they can't run in `cmd.exe` directly
+  (there is no `.bat` installer). Windows PowerShell 5.1 ships in-box with Windows
+  10/11 and Server 2016+, so it's normally already there; but a locked-down
+  corporate machine may restrict it (Group Policy / AppLocker / Constrained
+  Language Mode). If PowerShell is blocked — or you'd rather not use it — download
+  the `windows-x64.exe` from the
+  [latest release](https://github.com/planetarium/vicoop-provider/releases/latest)
+  manually and put it on your PATH. Once installed, the `vicoop-provider` command
+  itself runs from **both `cmd` and PowerShell**.
+
+**Network egress** (no GitHub token needed) — required for install and the first
+`up`; warm re-runs on an already-provisioned host don't re-download:
+
+- `github.com` + `api.github.com` — to fetch and version-check the binaries.
+- the **vicoop-bridge server** (`vicoop-bridge-server.fly.dev`) over **HTTPS *and*
+  WebSocket (WSS)** — the agent only stays reachable while the daemon holds a live
+  WS session, so a proxy or firewall that blocks outbound WebSockets will break it.
+- the **a2x-internal-router** (`a2x-internal-router.fly.dev`) over HTTPS.
+
+**Accounts** — the browser sign-ins walked through during [first run](#first-run):
+
+- a **Google** account (authorizes the bridge agent owner);
+- an **a2x** account via Privy (the a2x device-flow sign-in);
+- for the `vicoop-codex` backend, a **ChatGPT** account;
+- a **consumer API key** (`o2a-live-…`) minted in the a2x console — needed to
+  actually *call* inference (the one step `up` can't do for you).
+
+**Backend-specific**
+
+- **`vicoop-codex`** — `up` installs the backend for you. Its default sign-in is a
+  local-redirect OAuth flow, so it needs **a browser on this machine** and a free
+  **localhost port (1455, falling back to 1457)**. On a headless / remote host,
+  use `up -b vicoop-codex --headless` (device-code flow — needs vicoop-codex
+  ≥0.4.0, which `up` installs automatically, and device-code enabled on your
+  account).
+- **`claude`** — you must install and authenticate Anthropic's
+  [Claude Code](https://docs.claude.com/en/docs/claude-code/setup) CLI **yourself**
+  (`claude` on PATH, plus `claude setup-token`, an interactive sign-in, or
+  `ANTHROPIC_API_KEY` / `CLAUDE_CODE_OAUTH_TOKEN`). On **Linux**, Claude Code's
+  default sandbox also needs **`bubblewrap` (`bwrap`)** on PATH.
+
+**Runtime** — `up` runs the bridge as a **detached background daemon** that must
+keep running for the agent to stay reachable (no service/reboot supervision — if
+it dies, re-run `up`). State lives under writable home directories
+(`~/.vicoop-provider`, `~/.vicoop`, `~/.vicoop-codex`, `~/.local/bin`).
+
+> `vicoop-provider doctor` is a best-effort preflight, not a guarantee: it does
+> **not** probe the bridge / WebSocket reachability, GitHub, daemon liveness, the
+> localhost port, or filesystem permissions — so a clean report can still precede
+> an `up` failure on one of those.
+
 ## Install
 
 **macOS / Linux:**
