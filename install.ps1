@@ -4,7 +4,8 @@
 #
 # Resolves the latest release (or $env:VERSION), downloads the windows-x64
 # standalone binary, verifies its SHA256 checksum, and installs it as
-# vicoop-provider.exe (adding the install dir to your user PATH).
+# vicoop-provider.exe (adding the install dir to your user PATH and to the
+# current session, so the command works immediately in this shell).
 #
 # Release binaries live in a dedicated PUBLIC repo (the source repo is internal),
 # so no token is needed.
@@ -62,11 +63,16 @@ try {
   $dest = Join-Path $dir 'vicoop-provider.exe'
   Move-Item -Force (Join-Path $tmp $name) $dest
 
-  # add to the user PATH if missing
+  # add to the user PATH if missing (picked up by new shells)
   $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
   if (($userPath -split ';') -notcontains $dir) {
     [Environment]::SetEnvironmentVariable('Path', ($userPath.TrimEnd(';') + ';' + $dir), 'User')
-    Write-Host "install: added $dir to your user PATH (restart the shell to pick it up)"
+    Write-Host "install: added $dir to your user PATH (other already-open shells need a restart)"
+  }
+
+  # add to this session's PATH too, so vicoop-provider works in the current shell
+  if (($env:Path -split ';') -notcontains $dir) {
+    $env:Path = $env:Path.TrimEnd(';') + ';' + $dir
   }
 
   Write-Host "install: installed vicoop-provider $version -> $dest"

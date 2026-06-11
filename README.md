@@ -98,9 +98,11 @@ Or grab a binary directly from the [latest release](https://github.com/planetari
 The installer downloads the matching standalone binary, SHA256-verifies it, and
 installs it as `vicoop-provider` (no Node.js required). It prints the final
 location — on macOS/Linux that's `/usr/local/bin` or `~/.local/bin`; on Windows
-`%LOCALAPPDATA%\Programs\vicoop-provider`. If that directory isn't on your `PATH`
-the installer says so — add it (on Windows, **restart your shell** so the PATH
-change takes effect), then confirm:
+`%LOCALAPPDATA%\Programs\vicoop-provider`. On Windows the installer adds that
+directory to your user `PATH` **and to the current PowerShell session**, so the
+command works immediately in the shell you installed from (only *other*
+already-open shells need a restart). On macOS/Linux, if the directory isn't on
+your `PATH` the installer says so — add it. Then confirm:
 
 ```bash
 vicoop-provider --version
