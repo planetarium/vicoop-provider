@@ -39,8 +39,11 @@ $base = "https://github.com/$Repo/releases/download/v$version"
 # --- download + verify (in a temp dir) ---------------------------------------
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("vicoop-provider-" + [System.Guid]::NewGuid())
 New-Item -ItemType Directory -Path $tmp | Out-Null
+$prevProgress = $ProgressPreference
 try {
-  Write-Host "install: downloading $name"
+  Write-Host "install: downloading $name (~100 MB, may take a few minutes)"
+  # the progress bar throttles Invoke-WebRequest to a crawl in Windows PowerShell 5.1
+  $ProgressPreference = 'SilentlyContinue'
   Invoke-WebRequest -UseBasicParsing -Uri "$base/$name" -OutFile (Join-Path $tmp $name)
   Invoke-WebRequest -UseBasicParsing -Uri "$base/SHA256SUMS.txt" -OutFile (Join-Path $tmp 'SHA256SUMS.txt')
 
@@ -78,5 +81,6 @@ try {
   Write-Host "install: installed vicoop-provider $version -> $dest"
   & $dest --version
 } finally {
+  $ProgressPreference = $prevProgress
   Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
 }
