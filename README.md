@@ -2,7 +2,7 @@
 
 Public **release binaries** for `vicoop-provider` — the one-shot orchestrator that
 stands up a local backend, bridges it through vicoop-bridge, and onboards it to
-a2x-internal-router as OpenAI-compatible inference.
+vicoop-router as OpenAI-compatible inference.
 
 > This repository contains **only the compiled release artifacts**. The source
 > lives in a separate (private) repository; nothing is built or developed here.
@@ -45,7 +45,7 @@ build** — the installer won't match it and the tool can't self-upgrade there.
 - the **vicoop-bridge server** (`vicoop-bridge-server.fly.dev`) over **HTTPS *and*
   WebSocket (WSS)** — the agent only stays reachable while the daemon holds a live
   WS session, so a proxy or firewall that blocks outbound WebSockets will break it.
-- the **a2x-internal-router** (`a2x-internal-router.fly.dev`) over HTTPS.
+- the **vicoop-router** (`vicoop-router.fly.dev`) over HTTPS.
 
 **Accounts** — the browser sign-ins walked through during [first run](#first-run):
 
@@ -112,7 +112,7 @@ vicoop-provider --version
 
 `vicoop-provider` is a **single, idempotent command** that takes you from a fresh
 machine to a local backend that's callable as OpenAI-compatible inference through
-a2x-internal-router. Pick a backend and run `up`:
+vicoop-router. Pick a backend and run `up`:
 
 ```bash
 vicoop-provider up -b vicoop-codex     # expose a ChatGPT/Codex-backed agent
@@ -178,7 +178,7 @@ the a2x console (a Privy-gated, console-only action — outside the automated pa
 Once you've minted one, verify end-to-end (`<slug>` is the slug from the summary):
 
 ```bash
-curl -s https://a2x-internal-router.fly.dev/api/v1/chat/completions \
+curl -s https://vicoop-router.fly.dev/api/v1/chat/completions \
   -H "authorization: Bearer o2a-live-…" -H 'content-type: application/json' \
   -d '{"model":"<slug>","messages":[{"role":"user","content":"ping"}]}'
 ```
